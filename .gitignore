@@ -1,0 +1,14 @@
+*.cmo
+*.cmi
+*.cmx
+*.o
+iitran/*.cmo
+iitran/*.cmi
+iitran/*.cmx
+iitran/*.o
+llvm/*.cmo
+llvm/*.cmi
+llvm/*.cmx
+llvm/*.o
+parser.automaton
+parser.conflicts

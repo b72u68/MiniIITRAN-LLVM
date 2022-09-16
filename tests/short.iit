@@ -1,0 +1,6 @@
+$result: 1
+LOGICAL A, B
+INTEGER RESULT
+A <- 12 < 30 OR 1 / 0 < 0
+B <- 1 > 40 AND 1 / 0 < 0
+RESULT <- INT (A AND NOT B)
