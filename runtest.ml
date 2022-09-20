@@ -9,7 +9,7 @@ let get_result (filename: string) : string =
     process_raw_result result_line
 ;;
 
-let cmd f = Printf.sprintf "./main -interpllvm tests/%s" f
+let cmd f = Printf.sprintf "./main -interpllvm -nossa tests/%s" f
 
 let run_cmd cmd =
     let chan = Unix.open_process_in cmd in
@@ -24,7 +24,7 @@ let run_test f =
     let expected = get_result ("tests/" ^ f) in
     let result = (cmd f) |> run_cmd in
     if result = expected then Printf.printf "%s: passed\n" f
-    else Printf.printf "%s: failed, got \"%s\n\"" f result
+    else Printf.printf "%s: failed, expected \"%s\", got \"%s\"\n" f expected result
 ;;
 
 let testfiles : string list =

@@ -18,6 +18,7 @@ let interpllvm = ref false
 let nossa = ref false
 let opt = ref true
 let verbose = ref false
+let notypecheck = ref false
 
 let specs =
   [("-verbose", Set verbose, "Print main compiler passes");
@@ -30,6 +31,7 @@ let specs =
    ("-nossa", Set nossa, "Do not convert LLVM to SSA");
    ("-O0", Clear opt, "No optimizations");
    ("-O1", Set opt, "Standard optimizations");
+   ("-notypecheck", Set notypecheck, "Generate LLVM without typecheck");
   ]
 
 let () = parse specs (fun s -> input_file := s) usage_msg
@@ -96,9 +98,8 @@ let (llvmprog, tds) =
            with IITRAN.Typecheck.TypeError (s, (spos, epos)) ->
                  Printf.fprintf stderr "%s--%s: Type Error: %s"
                    (string_of_pos spos)
-		   (string_of_pos epos)
-		   s;
-                 exit 1
+           (string_of_pos epos)
+           s; exit 1
          in
          (verb "Start Compile IITRAN");
          (compile tprog, Varmap.empty)
@@ -114,7 +115,9 @@ let ts =
       s
       LLVM.Print.print_inst i;
     Format.print_newline ();
-    exit 1
+    if !notypecheck then
+        LLVM.Typecheck.LLVarmap.empty
+    else exit 1
 
 let (llvm_ssa, tds) =
   if !nossa then (llvmprog, tds)

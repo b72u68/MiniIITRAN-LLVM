@@ -74,11 +74,33 @@ and compile_binop (dest: L.var) (b: bop) (e1: t_exp) (e2: t_exp) : L.inst list =
     let t = compile_typ e1.einfo in
     match b with
     | BAdd | BSub | BMul | BDiv ->
-            let d1 = new_temp () in
-            let il1 = compile_exp d1 e1 in
-            let d2 = new_temp () in
-            let il2 = compile_exp d2 e2 in
-            il1 @ il2 @ [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, L.Var d1, L.Var d2)]
+            (match e1.edesc with
+            | EVar v ->
+                    (match e2.edesc with
+                    | EVar v' -> [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, compile_var v, compile_var v')]
+                    | EConst c -> [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, compile_var v, L.Const (val_of_const c))]
+                    | _ ->
+                            let d2 = new_temp () in
+                            let il2 = compile_exp d2 e2 in
+                            il2 @ [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, compile_var v, L.Var d2)])
+            | EConst c ->
+                    (match e2.edesc with
+                    | EVar v -> [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, L.Const (val_of_const c), compile_var v)]
+                    | EConst c' -> [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, L.Const (val_of_const c), L.Const (val_of_const c'))]
+                    | _ ->
+                            let d2 = new_temp () in
+                            let il2 = compile_exp d2 e2 in
+                            il2 @ [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, L.Const (val_of_const c), L.Var d2)])
+            | _ ->
+                    let d1 = new_temp () in
+                    let il1 = compile_exp d1 e1 in
+                    (match e2.edesc with
+                    | EVar v -> il1 @ [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, L.Var d1, compile_var v)]
+                    | EConst c -> il1 @ [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, L.Var d1, L.Const (val_of_const c))]
+                    | _ ->
+                            let d2 = new_temp () in
+                            let il2 = compile_exp d2 e2 in
+                            il1 @ il2 @ [L.IBinop (dest, map_iit_bop_to_llvm_bop b, t, L.Var d1, L.Var d2)]))
     | BAnd ->
             let tdest = new_label () in
             let fdest = new_label () in
@@ -100,11 +122,33 @@ and compile_binop (dest: L.var) (b: bop) (e1: t_exp) (e2: t_exp) : L.inst list =
             @ [L.ILabel fdest; move dest (compile_typ TLogical) (L.Const 0)] @ [L.IBr ldone]
             @ [L.ILabel ldone]
     | BGt | BGe | BLt | BLe | BNe | BEq ->
-            let d1 = new_temp () in
-            let il1 = compile_exp d1 e1 in
-            let d2 = new_temp () in
-            let il2 = compile_exp d2 e2 in
-            il1 @ il2 @ [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, L.Var d1, L.Var d2)]
+            (match e1.edesc with
+            | EVar v ->
+                    (match e2.edesc with
+                    | EVar v' -> [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, compile_var v, compile_var v')]
+                    | EConst c -> [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, compile_var v, L.Const (val_of_const c))]
+                    | _ ->
+                            let d2 = new_temp () in
+                            let il2 = compile_exp d2 e2 in
+                            il2 @ [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, compile_var v, L.Var d2)])
+            | EConst c ->
+                    (match e2.edesc with
+                    | EVar v -> [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, L.Const (val_of_const c), compile_var v)]
+                    | EConst c' -> [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, L.Const (val_of_const c), L.Const (val_of_const c'))]
+                    | _ ->
+                            let d2 = new_temp () in
+                            let il2 = compile_exp d2 e2 in
+                            il2 @ [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, L.Const (val_of_const c), L.Var d2)])
+            | _ ->
+                    let d1 = new_temp () in
+                    let il1 = compile_exp d1 e1 in
+                    (match e2.edesc with
+                    | EVar v -> il1 @ [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, L.Var d1, compile_var v)]
+                    | EConst c -> il1 @ [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, L.Var d1, L.Const (val_of_const c))]
+                    | _ ->
+                            let d2 = new_temp () in
+                            let il2 = compile_exp d2 e2 in
+                            il1 @ il2 @ [L.ICmp (dest, map_iit_bop_to_llvm_cmp b, t, L.Var d1, L.Var d2)]))
 
 and compile_unop (dest: L.var)  (u: unop) (e: t_exp) : L.inst list =
     let t = compile_typ e.einfo in
@@ -138,7 +182,11 @@ let rec compile_stmt (s: t_stmt) : L.inst list =
     match s.sdesc with
     | SDecl (t, vl) -> []
     | SDo sl -> List.fold_left (fun acc s -> acc @ (compile_stmt s)) [] sl
-    | SExp e -> compile_exp (new_temp ()) e
+    | SExp e ->
+            (match e.edesc with
+            | EAssign ({edesc = EVar v}, e') -> (compile_exp (L.Local v) e')
+            | EAssign (_, _) -> raise (RuntimeError ("Left side of assignment is not a variable", e.eloc))
+            | _ -> compile_exp (new_temp ()) e)
     | SIf (e, s, None) ->
             let l1 = new_label () in
             let l2 = new_label () in
