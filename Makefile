@@ -8,7 +8,7 @@ OTHER_FILES=iitllvm.ml main.ml
 
 INCLUDES=-I iitran/ -I llvm/ -I utils/
 
-BINS=main
+BINS=main runtest
 
 all:
 	ocamlopt -g -o main $(INCLUDES) $(UTILS_FILES) $(IIT_FILES) $(LLVM_FILES) $(OTHER_FILES)
@@ -27,3 +27,4 @@ clean:
 	cd llvm && rm -f *~ *.cmo *.cmi *.cmx *.o
 	cd iitran && rm -f *~ *.cmo *.cmi *.cmx *.o
 	cd utils && rm -f *~ *.cmo *.cmi *.cmx *.o
+	cd tests && rm -f *.ll
