@@ -114,24 +114,25 @@ and compile_binop (dest: L.var) (b: bop) (e1: t_exp) (e2: t_exp) : L.inst list =
 and compile_unop (dest: L.var)  (u: unop) (e: t_exp) : L.inst list =
     let t = compile_typ e.einfo in
     let (il, d) = compile_nested_exp e in
-    match u with
-    | UNeg -> il @ [L.IBinop (dest, L.BSub, t, L.Const 0, d)]
-    | UNot -> il @ [L.IBinop (dest, L.BXor, t, d, L.Const 1)]
-    | UChar ->
-            (match e.einfo with
-            | TCharacter -> il
-            | TInteger -> il @ [L.ICast (dest, L.CBitcast, t, d, itype)]
-            | TLogical -> il @ [L.ICast (dest, L.CZext, t, d, itype)])
-    | UInt ->
-            (match e.einfo with
-            | TInteger -> il
-            | TCharacter -> il @ [L.ICast (dest, L.CBitcast, t, d, itype)]
-            | TLogical -> il @ [L.ICast (dest, L.CZext, t, d, itype)])
-    | ULog ->
-            (match e.einfo with
-            | TLogical -> il
-            | TInteger | TCharacter->
-            il @ [L.ICast (dest, L.CTrunc, t, d, btype)])
+    let il' =
+        (match u with
+        | UNeg -> [L.IBinop (dest, L.BSub, t, L.Const 0, d)]
+        | UNot -> [L.IBinop (dest, L.BXor, t, d, L.Const 1)]
+        | UChar ->
+                (match e.einfo with
+                | TCharacter -> []
+                | TInteger -> [L.ICast (dest, L.CBitcast, t, d, itype)]
+                | TLogical -> [L.ICast (dest, L.CZext, t, d, itype)])
+        | UInt ->
+                (match e.einfo with
+                | TInteger -> []
+                | TCharacter -> [L.ICast (dest, L.CBitcast, t, d, itype)]
+                | TLogical -> [L.ICast (dest, L.CZext, t, d, itype)])
+        | ULog ->
+                (match e.einfo with
+                | TLogical -> []
+                | TInteger | TCharacter -> [L.ICast (dest, L.CTrunc, t, d, btype)]))
+    in il @ il'
 
 and compile_branch_exp (e: t_exp) (tlabel: L.label) (flabel: L.label) : L.inst list =
     let (il, d) = compile_nested_exp e in
@@ -146,7 +147,7 @@ let rec compile_stmt (s: t_stmt) : L.inst list =
             (match e.edesc with
             | EAssign ({edesc = EVar v}, e') -> (compile_exp (L.Local v) e')
             | EAssign (_, _) -> raise (RuntimeError ("Left side of assignment is not a variable", e.eloc))
-            | _ -> compile_nested_exp e |> fst)
+            | _ -> compile_exp (new_temp ()) e)
     | SIf (e, s, None) ->
             let l1 = new_label () in
             let l2 = new_label () in

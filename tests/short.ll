@@ -27,11 +27,9 @@ label6:
   %b = bitcast i1 0 to i1
   br label %label8
 label8:
-  %temp10 = bitcast i1 %a to i1
-  br i1 %temp10, label %label11, label %label10
+  br i1 %a, label %label11, label %label10
 label11:
-  %temp9 = bitcast i1 %b to i1
-  %temp8 = xor i1 %temp9, 1
+  %temp8 = xor i1 %b, 1
   br i1 %temp8, label %label9, label %label10
 label9:
   %temp7 = bitcast i1 1 to i1

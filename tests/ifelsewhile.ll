@@ -2,13 +2,12 @@ declare i8* @malloc(i32)
 define i64 @main() {
 main__entry:
   %result = bitcast i64 0 to i64
-  %temp4 = icmp slt i64 2, 1
-  br i1 %temp4, label %label1, label %label2
+  %temp3 = icmp slt i64 2, 1
+  br i1 %temp3, label %label1, label %label2
 label1:
   br label %label3
 label3:
-  %temp3 = bitcast i64 1 to i64
-  %temp2 = trunc i64 %temp3 to i1
+  %temp2 = trunc i64 1 to i1
   br i1 %temp2, label %label4, label %label5
 label4:
   %temp1 = icmp slt i64 1, 2
