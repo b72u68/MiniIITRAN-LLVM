@@ -70,7 +70,7 @@ let rec compile_exp (dest: L.var) (e: t_exp) : L.inst list =
     | EAssign ({edesc = EVar v}, e') -> (compile_exp (L.Local v) e') @ [move dest t (compile_var v)]
     | EAssign (_, _) -> raise (RuntimeError ("Left side of assignment is not a variable", e.eloc))
 
-and compile_nested_exp (e: t_exp) : L.inst list * 'var L.value_ =
+and compile_nested_exp (e: t_exp) : L.inst list * L.value =
     match e.edesc with
     | EVar v -> ([], compile_var v)
     | EConst c -> ([], L.Const (val_of_const c))
