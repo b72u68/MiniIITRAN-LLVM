@@ -31,7 +31,7 @@ let specs =
    ("-nossa", Set nossa, "Do not convert LLVM to SSA");
    ("-O0", Clear opt, "No optimizations");
    ("-O1", Set opt, "Standard optimizations");
-   ("-notypecheck", Set notypecheck, "Generate LLVM without typecheck");
+   ("-notypecheck", Set notypecheck, "Generate LLVM without typechecking");
   ]
 
 let () = parse specs (fun s -> input_file := s) usage_msg
