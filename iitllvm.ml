@@ -120,17 +120,17 @@ and compile_unop (dest: L.var)  (u: unop) (e: t_exp) : L.inst list =
         | UNot -> [L.IBinop (dest, L.BXor, t, d, L.Const 1)]
         | UChar ->
                 (match e.einfo with
-                | TCharacter -> []
+                | TCharacter -> [move dest itype d]
                 | TInteger -> [L.ICast (dest, L.CBitcast, t, d, itype)]
                 | TLogical -> [L.ICast (dest, L.CZext, t, d, itype)])
         | UInt ->
                 (match e.einfo with
-                | TInteger -> []
+                | TInteger -> [move dest itype d]
                 | TCharacter -> [L.ICast (dest, L.CBitcast, t, d, itype)]
                 | TLogical -> [L.ICast (dest, L.CZext, t, d, itype)])
         | ULog ->
                 (match e.einfo with
-                | TLogical -> []
+                | TLogical -> [move dest btype d]
                 | TInteger | TCharacter -> [L.ICast (dest, L.CTrunc, t, d, btype)]))
     in il @ il'
 
